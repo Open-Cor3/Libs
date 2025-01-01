@@ -1,5 +1,3 @@
--- Settings
-
 local Aimbot = {
     Enabled = false,
     Key = Enum.UserInputType.MouseButton2,
@@ -64,12 +62,18 @@ Aimbot.GetClosestPart = function()
                         local rayParams = RaycastParams.new()
                         rayParams.FilterDescendantsInstances = {plr.Character, v.Character}
                         rayParams.IgnoreWater = true
-                        local ray = workspace:Raycast(workspace.CurrentCamera.CFrame.p, part.Position - workspace.CurrentCamera.CFrame.p, rayParams)
+                        local direction = (part.Position - workspace.CurrentCamera.CFrame.p).unit * (part.Position - workspace.CurrentCamera.CFrame.p).Magnitude
+                        local ray = workspace:Raycast(workspace.CurrentCamera.CFrame.p, direction, rayParams)
                         if ray and ray.Instance then
-                            continue
+                            if ray.Instance:IsDescendantOf(part.Parent) then
+                                table.insert(parts, v.Character[Aimbot.PlayerPart])
+                            end
+                        else
+                            table.insert(parts, v.Character[Aimbot.PlayerPart])
                         end
+                    else
+                        table.insert(parts, v.Character[Aimbot.PlayerPart])
                     end
-                    table.insert(parts, v.Character[Aimbot.PlayerPart])
                 end
             end
         end
@@ -122,8 +126,6 @@ UserInputService.InputEnded:Connect(function(input)
         keypressed = false
     end 
 end)
-
--- loops
 
 RunService.RenderStepped:Connect(function() 
     fovcircle.Visible = Aimbot.ShowFOV
