@@ -271,11 +271,6 @@ function VisualLibrary:CreateVisual(method: string, properties: table)
         return
     end
 
-    if Method ~= ("Highlight" or "highlight") and not Properties.Type and not Properties.type then
-        warn("[DY | Visual Library]: Missing 'Type'")
-        return
-    end
-
     local VisualObj = {
         Object = (Method:lower() == "drawing" and Properties.Type:lower() ~= "skeleton") and Drawing.new(Properties.Type or Properties.type) or
                  (Method:lower() == "highlight") and Instance.new("Highlight"),
