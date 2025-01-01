@@ -47,15 +47,12 @@ Aimbot.GetClosestPart = function()
                 end
                 if v.Character and v.Character:FindFirstChild(Aimbot.PlayerPart) then
                     local part = v.Character[Aimbot.PlayerPart]
-                    if Aimbot.VisibilityCheck then
-                        local params = RaycastParams.new()
-                        params.FilterType = Enum.RaycastFilterType.Blacklist
-                        params.IgnoreWater = true
-                        params.FilterDescendantsInstances = {part.Parent, plr.Character}
-                        local raycast = workspace:Raycast(workspace.CurrentCamera.CFrame.p, (part.CFrame.p - workspace.Camera.CFrame.p), params)
-                        if raycast then
-                            continue
-                        end
+                    local pos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(part.Position)
+                    if not onScreen then
+                        continue
+                    end
+                    if Aimbot.WallCheck and not onScreen then
+                        continue
                     end
                     table.insert(parts, v.Character[Aimbot.PlayerPart])
                 end
@@ -79,6 +76,7 @@ Aimbot.GetClosestPart = function()
 
     return target
 end
+
 
 Aimbot.Aim = function(x, y, smooth)
     if not smooth then
