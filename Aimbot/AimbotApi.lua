@@ -7,7 +7,6 @@ local Aimbot = {
     TeamCheck = false,
     AliveCheck = false,
     VisibilityCheck = false,
-    WallCheck = true,
     Smoothing = 0,
     SmoothingMethod = 0,
     Offset = {0, 0},
@@ -31,14 +30,14 @@ Aimbot.GetClosestPart = function()
     local target
     local parts = {}
 
-    for i,v in pairs(Aimbot.CustomParts) do
+    for i, v in pairs(Aimbot.CustomParts) do
         if v:IsA'Part' or v:IsA'BasePart' or v:IsA'MeshPart' then
             table.insert(parts, v)
         end
     end
     
     if Aimbot.Players == true then
-        for i,v in pairs(Players:GetPlayers()) do
+        for i, v in pairs(Players:GetPlayers()) do
             if not table.find(Aimbot.FriendlyPlayers, v.Name) and v.Name ~= plr.Name then
                 if Aimbot.AliveCheck and v.Character and v.Character:FindFirstChildWhichIsA'Humanoid' and v.Character:FindFirstChildWhichIsA'Humanoid'.Health < 1 then
                     continue
@@ -58,28 +57,13 @@ Aimbot.GetClosestPart = function()
                             continue
                         end
                     end
-                    if Aimbot.WallCheck then
-                        local rayParams = RaycastParams.new()
-                        rayParams.FilterDescendantsInstances = {plr.Character, v.Character}
-                        rayParams.IgnoreWater = true
-                        local direction = (part.Position - workspace.CurrentCamera.CFrame.p).unit * (part.Position - workspace.CurrentCamera.CFrame.p).Magnitude
-                        local ray = workspace:Raycast(workspace.CurrentCamera.CFrame.p, direction, rayParams)
-                        if ray and ray.Instance then
-                            if ray.Instance:IsDescendantOf(part.Parent) then
-                                table.insert(parts, v.Character[Aimbot.PlayerPart])
-                            end
-                        else
-                            table.insert(parts, v.Character[Aimbot.PlayerPart])
-                        end
-                    else
-                        table.insert(parts, v.Character[Aimbot.PlayerPart])
-                    end
+                    table.insert(parts, v.Character[Aimbot.PlayerPart])
                 end
             end
         end
     end
     
-    for i,v in pairs(parts) do
+    for i, v in pairs(parts) do
         local pos = workspace.CurrentCamera:WorldToScreenPoint(v.CFrame.p)
         local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
         if distance <= Aimbot.FOV and pos.Z >= 0 then
@@ -134,7 +118,7 @@ RunService.RenderStepped:Connect(function()
     fovcircle.Position = Vector2.new(mouse.X + Aimbot.Offset[1], mouse.Y + 35 + Aimbot.Offset[2])
 end)
 
-RunService.RenderStepped:Connect(function() 
+RunService.RenderStepped:Connect(function()
     if Aimbot.Enabled and keypressed then
         local part = Aimbot.GetClosestPart()
         if part then
