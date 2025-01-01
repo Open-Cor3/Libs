@@ -138,4 +138,6 @@ RunService.RenderStepped:Connect(function() -- Aiming
     end
 end)
 
+print("Running OPENCORE AimbotAPI.lua Vers 1.0")
+
 return Aimbot
