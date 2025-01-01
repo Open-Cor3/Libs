@@ -9,6 +9,7 @@ local Aimbot = {
     TeamCheck = false,
     AliveCheck = false,
     VisibilityCheck = false,
+    WallCheck = true,
     Smoothing = 0,
     SmoothingMethod = 0,
     Offset = {0, 0},
@@ -17,8 +18,6 @@ local Aimbot = {
     CustomParts = {},
     FOVCircleColor = Color3.fromRGB(255, 255, 255)
 }
-
--- Variables
 
 local UserInputService = game:service'UserInputService'
 local Players = game:service'Players'
@@ -30,11 +29,8 @@ local fovcircle = Drawing.new('Circle')
 fovcircle.Filled = false
 fovcircle.Thickness = 1
 
--- Functions
-
 Aimbot.GetClosestPart = function()
     local target
-    
     local parts = {}
 
     for i,v in pairs(Aimbot.CustomParts) do
@@ -61,6 +57,15 @@ Aimbot.GetClosestPart = function()
                         params.FilterDescendantsInstances = {part.Parent, plr.Character}
                         local raycast = workspace:Raycast(workspace.CurrentCamera.CFrame.p, (part.CFrame.p - workspace.Camera.CFrame.p), params)
                         if raycast then
+                            continue
+                        end
+                    end
+                    if Aimbot.WallCheck then
+                        local rayParams = RaycastParams.new()
+                        rayParams.FilterDescendantsInstances = {plr.Character, v.Character}
+                        rayParams.IgnoreWater = true
+                        local ray = workspace:Raycast(workspace.CurrentCamera.CFrame.p, part.Position - workspace.CurrentCamera.CFrame.p, rayParams)
+                        if ray and ray.Instance then
                             continue
                         end
                     end
@@ -98,8 +103,6 @@ Aimbot.Aim = function(x, y, smooth)
     end
 end
 
--- Key Pressing
-
 UserInputService.InputBegan:Connect(function(input)
     if not Aimbot.Key then return end
     if UserInputService:GetFocusedTextBox() then
@@ -120,16 +123,16 @@ UserInputService.InputEnded:Connect(function(input)
     end 
 end)
 
--- Loops
+-- loops
 
-RunService.RenderStepped:Connect(function() -- FOV Updating
+RunService.RenderStepped:Connect(function() 
     fovcircle.Visible = Aimbot.ShowFOV
     fovcircle.Color = Aimbot.FOVCircleColor
     fovcircle.Radius = Aimbot.FOV
     fovcircle.Position = Vector2.new(mouse.X + Aimbot.Offset[1], mouse.Y + 35 + Aimbot.Offset[2])
 end)
 
-RunService.RenderStepped:Connect(function() -- Aiming
+RunService.RenderStepped:Connect(function() 
     if Aimbot.Enabled and keypressed then
         local part = Aimbot.GetClosestPart()
         if part then
