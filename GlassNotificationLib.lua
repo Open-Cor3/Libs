@@ -6,16 +6,17 @@
   local GlassNotify = loadstring(HttpGet path.to.module)
   
   -- Display a simple notification
-  GlassNotify:Toast("Title", "This is a notification message")
+  GlassNotify:Toast("Title", "This is an Info")
   
   -- Display a success notification
-  GlassNotify:Success("Success!", "Operation completed successfully")
+  GlassNotify:Success("Success!", "This is a Success")
   
   -- Display a warning banner
-  GlassNotify:Warning("Warning", "Please save your work before continuing", 8)
+  GlassNotify:Warning("Warning", "This is an Warning", 8)
   
   -- Display an error notification
-  GlassNotify:Error("Error", "Failed to save file", 10)
+  GlassNotify:Error("Error", "This is an Error", 10)
+
   
   -- Send custom Notification
 GlassNotify:Custom({ -- Get Func
