@@ -1,138 +1,93 @@
 --[[
-  OpenCore Loading Screen
-  A sleek, animated loading screen with blue and green theme
-  Inspired by Dex Loader UI with configurable settings
+  Compact OpenCore Loading Module
+  A sleek, animated loading interface that sits in the center of the screen
+  Maintains the blue/green aesthetic in a more modular design
 ]]
 
-local LoadingScreen = {}
+local CompactLoader = {}
 
 local Settings = {
     Title = "OpenCore",
     Version = "v1.0.0",
-    Subtitle = "Loading resources...",
     BackgroundColor = Color3.fromRGB(25, 25, 35),
     PrimaryColor = Color3.fromRGB(0, 150, 255),   -- Blue
     SecondaryColor = Color3.fromRGB(0, 200, 100), -- Green
     Font = Enum.Font.GothamSemibold,
-    LoadingBarSpeed = 0.5,        -- Speed of the loading animation (lower = faster)
+    LoadingBarSpeed = 0.3,        -- Speed of the loading animation (lower = faster)
     AutoClose = true,             -- Automatically close when loading is complete
     Sounds = {
         Enabled = true,
-        Background = "rbxassetid://6958727243", -- Ambient background music
         Complete = "rbxassetid://6895079853"    -- Sound when loading is complete
     },
-    LoadingSteps = {
-        "Initializing systems...",
-        "Loading resources...",
-        "Establishing connections...",
-        "Preparing environment...",
-        "Loading user interface...",
-        "Finalizing setup...",
-    }
+    -- Animation for dots when loading
+    UseLoadingDots = true
 }
 
--- Variables
+-- Services
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local ScreenGui = nil
-local LoadingMusic = nil
-local CurrentStep = 0
-local IsLoading = false
 
 -- Animation settings
-local TweenSettings = {
+local TweenInfo = {
     Fast = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-    Medium = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-    Slow = TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-    Loading = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true)
+    Medium = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+    Pulse = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 }
 
--- Create the loading screen
-function LoadingScreen:Create()
+-- Create the compact loader
+function CompactLoader:Create()
     if ScreenGui then return end
     
-    -- Create ScreenGui
+    -- Create ScreenGui with transparency
     ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "OpenCoreLoader"
+    ScreenGui.Name = "CompactLoader"
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.IgnoreGuiInset = true
     ScreenGui.ResetOnSpawn = false
     ScreenGui.Parent = PlayerGui
     
-    -- Main background
+    -- Semi-transparent background
     local background = Instance.new("Frame")
     background.Name = "Background"
     background.Size = UDim2.new(1, 0, 1, 0)
-    background.BackgroundColor3 = Settings.BackgroundColor
+    background.BackgroundColor3 = Color3.new(0, 0, 0)
+    background.BackgroundTransparency = 0.7
     background.BorderSizePixel = 0
     background.Parent = ScreenGui
     
-    -- Create gradient background
-    local gradientFrame = Instance.new("Frame")
-    gradientFrame.Name = "GradientBackground"
-    gradientFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    gradientFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    gradientFrame.Size = UDim2.new(1, 0, 1, 0)
-    gradientFrame.BackgroundTransparency = 1
-    gradientFrame.BorderSizePixel = 0
-    gradientFrame.Parent = background
-    
-    -- Create pattern overlay
-    local pattern = Instance.new("ImageLabel")
-    pattern.Name = "PatternOverlay"
-    pattern.Size = UDim2.new(1, 0, 1, 0)
-    pattern.BackgroundTransparency = 1
-    pattern.Image = "rbxassetid://6372755229"
-    pattern.ImageColor3 = Settings.PrimaryColor
-    pattern.ImageTransparency = 0.9
-    pattern.ScaleType = Enum.ScaleType.Tile
-    pattern.TileSize = UDim2.new(0, 300, 0, 300)
-    pattern.Parent = background
-    
-    -- Animate the pattern
-    local patternRotation = 0
-    spawn(function()
-        while ScreenGui and ScreenGui.Parent do
-            patternRotation = patternRotation + 0.1
-            pattern.Rotation = patternRotation
-            wait(0.05)
-        end
-    end)
-    
-    -- Create container
+    -- Center container
     local container = Instance.new("Frame")
     container.Name = "Container"
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
-    container.Size = UDim2.new(0, 500, 0, 300)
-    container.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    container.BackgroundTransparency = 0.1
+    container.Size = UDim2.new(0, 280, 0, 140)
+    container.BackgroundColor3 = Settings.BackgroundColor
     container.BorderSizePixel = 0
-    container.Parent = background
+    container.Parent = ScreenGui
     
-    -- Add rounded corners to container
+    -- Rounded corners
     local cornerRadius = Instance.new("UICorner")
-    cornerRadius.CornerRadius = UDim.new(0, 8)
+    cornerRadius.CornerRadius = UDim.new(0, 10)
     cornerRadius.Parent = container
     
-    -- Apply glass blur effect
-    local blur = Instance.new("Frame")
-    blur.Name = "BlurEffect"
-    blur.Size = UDim2.new(1, 0, 1, 0)
-    blur.BackgroundTransparency = 0.9
-    blur.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    blur.BorderSizePixel = 0
-    blur.Parent = container
+    -- Add a subtle shadow
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://5028857084"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.6
+    shadow.ZIndex = -1
+    shadow.Parent = container
     
-    local blurCorner = Instance.new("UICorner")
-    blurCorner.CornerRadius = UDim.new(0, 8)
-    blurCorner.Parent = blur
-    
-    -- Create top gradient accent
+    -- Top gradient accent
     local topAccent = Instance.new("Frame")
     topAccent.Name = "TopAccent"
-    topAccent.Size = UDim2.new(1, 0, 0, 4)
+    topAccent.Size = UDim2.new(1, 0, 0, 3)
     topAccent.BorderSizePixel = 0
     topAccent.Parent = container
     
@@ -153,17 +108,12 @@ function LoadingScreen:Create()
         end
     end)
     
-    -- Add rounded corners to top accent
-    local accentCorner = Instance.new("UICorner")
-    accentCorner.CornerRadius = UDim.new(0, 4)
-    accentCorner.Parent = topAccent
-    
-    -- Create logo/icon
+    -- Logo
     local logoContainer = Instance.new("Frame")
     logoContainer.Name = "LogoContainer"
-    logoContainer.Position = UDim2.new(0.5, 0, 0.2, 0)
+    logoContainer.Position = UDim2.new(0.15, 0, 0.5, 0)
     logoContainer.AnchorPoint = Vector2.new(0.5, 0.5)
-    logoContainer.Size = UDim2.new(0, 100, 0, 100)
+    logoContainer.Size = UDim2.new(0, 50, 0, 50)
     logoContainer.BackgroundTransparency = 1
     logoContainer.Parent = container
     
@@ -176,12 +126,12 @@ function LoadingScreen:Create()
     logo.BorderSizePixel = 0
     logo.Parent = logoContainer
     
-    -- Add rounded corners to logo
+    -- Rounded logo
     local logoCorner = Instance.new("UICorner")
     logoCorner.CornerRadius = UDim.new(0.5, 0)
     logoCorner.Parent = logo
     
-    -- Add logo gradient
+    -- Logo gradient
     local logoGradient = Instance.new("UIGradient")
     logoGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Settings.PrimaryColor),
@@ -190,7 +140,7 @@ function LoadingScreen:Create()
     logoGradient.Rotation = 45
     logoGradient.Parent = logo
     
-    -- Create a custom "OC" text inside the logo
+    -- "OC" text in logo
     local logoText = Instance.new("TextLabel")
     logoText.Name = "LogoText"
     logoText.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -200,10 +150,10 @@ function LoadingScreen:Create()
     logoText.Font = Enum.Font.GothamBold
     logoText.Text = "OC"
     logoText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    logoText.TextSize = 40
+    logoText.TextSize = 20
     logoText.Parent = logo
     
-    -- Glow effect for logo
+    -- Subtle glow for logo
     local glow = Instance.new("ImageLabel")
     glow.Name = "Glow"
     glow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -215,70 +165,65 @@ function LoadingScreen:Create()
     glow.ImageTransparency = 0.6
     glow.Parent = logoContainer
     
-    -- Animate the glow
+    -- Pulse animation for glow
     local glowTween = TweenService:Create(
         glow,
-        TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        TweenInfo.Pulse,
         {Size = UDim2.new(1.8, 0, 1.8, 0), ImageTransparency = 0.7}
     )
     glowTween:Play()
     
-    -- Create title
+    -- Title and info container (right side)
+    local infoContainer = Instance.new("Frame")
+    infoContainer.Name = "InfoContainer"
+    infoContainer.Position = UDim2.new(0.6, 0, 0.35, 0)
+    infoContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    infoContainer.Size = UDim2.new(0.6, 0, 0.5, 0)
+    infoContainer.BackgroundTransparency = 1
+    infoContainer.Parent = container
+    
+    -- Title
     local title = Instance.new("TextLabel")
     title.Name = "Title"
-    title.Position = UDim2.new(0.5, 0, 0.45, 0)
-    title.AnchorPoint = Vector2.new(0.5, 0)
-    title.Size = UDim2.new(0, 300, 0, 40)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.Size = UDim2.new(1, 0, 0, 24)
     title.BackgroundTransparency = 1
     title.Font = Settings.Font
     title.Text = Settings.Title
-    title.TextSize = 36
+    title.TextSize = 24
+    title.TextXAlignment = Enum.TextXAlignment.Left
     title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.Parent = container
+    title.Parent = infoContainer
     
-    -- Create version text
+    -- Version
     local version = Instance.new("TextLabel")
     version.Name = "Version"
-    version.Position = UDim2.new(0.5, 75, 0.45, 12)
-    version.AnchorPoint = Vector2.new(0, 0)
-    version.Size = UDim2.new(0, 60, 0, 20)
+    version.Position = UDim2.new(0, 2, 0, 24)
+    version.Size = UDim2.new(1, 0, 0, 16)
     version.BackgroundTransparency = 1
     version.Font = Settings.Font
     version.Text = Settings.Version
-    version.TextSize = 16
+    version.TextSize = 14
+    version.TextXAlignment = Enum.TextXAlignment.Left
     version.TextColor3 = Settings.SecondaryColor
-    version.Parent = container
+    version.Parent = infoContainer
     
-    -- Create subtitle
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Position = UDim2.new(0.5, 0, 0.58, 0)
-    subtitle.AnchorPoint = Vector2.new(0.5, 0)
-    subtitle.Size = UDim2.new(0.8, 0, 0, 20)
-    subtitle.BackgroundTransparency = 1
-    subtitle.Font = Settings.Font
-    subtitle.Text = Settings.Subtitle
-    subtitle.TextSize = 18
-    subtitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-    subtitle.TextTransparency = 0.2
-    subtitle.Parent = container
-    
-    -- Create loading bar container
+    -- Loading bar container
     local loadingBarContainer = Instance.new("Frame")
     loadingBarContainer.Name = "LoadingBarContainer"
-    loadingBarContainer.Position = UDim2.new(0.5, 0, 0.7, 0)
-    loadingBarContainer.AnchorPoint = Vector2.new(0.5, 0)
-    loadingBarContainer.Size = UDim2.new(0.8, 0, 0, 10)
+    loadingBarContainer.Position = UDim2.new(0.5, 0, 0.8, 0)
+    loadingBarContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    loadingBarContainer.Size = UDim2.new(0.85, 0, 0, 6)
     loadingBarContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     loadingBarContainer.BorderSizePixel = 0
     loadingBarContainer.Parent = container
     
-    -- Add rounded corners to loading bar container
+    -- Loading bar container rounded corners
     local loadingBarContainerCorner = Instance.new("UICorner")
-    loadingBarContainerCorner.CornerRadius = UDim.new(0, 5)
+    loadingBarContainerCorner.CornerRadius = UDim.new(0, 3)
     loadingBarContainerCorner.Parent = loadingBarContainer
     
-    -- Create loading bar
+    -- Loading bar
     local loadingBar = Instance.new("Frame")
     loadingBar.Name = "LoadingBar"
     loadingBar.Size = UDim2.new(0, 0, 1, 0)
@@ -286,12 +231,12 @@ function LoadingScreen:Create()
     loadingBar.BorderSizePixel = 0
     loadingBar.Parent = loadingBarContainer
     
-    -- Add rounded corners to loading bar
+    -- Loading bar rounded corners
     local loadingBarCorner = Instance.new("UICorner")
-    loadingBarCorner.CornerRadius = UDim.new(0, 5)
+    loadingBarCorner.CornerRadius = UDim.new(0, 3)
     loadingBarCorner.Parent = loadingBar
     
-    -- Add gradient to loading bar
+    -- Loading bar gradient
     local loadingBarGradient = Instance.new("UIGradient")
     loadingBarGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Settings.PrimaryColor),
@@ -303,143 +248,123 @@ function LoadingScreen:Create()
     spawn(function()
         local offset = 0
         while ScreenGui and ScreenGui.Parent do
-            offset = (offset + 0.005) % 1
+            offset = (offset + 0.008) % 1
             loadingBarGradient.Offset = Vector2.new(offset, 0)
             wait()
         end
     end)
     
-    -- Create loading text
+    -- Loading text
     local loadingText = Instance.new("TextLabel")
     loadingText.Name = "LoadingText"
-    loadingText.Position = UDim2.new(0.5, 0, 0.78, 0)
-    loadingText.AnchorPoint = Vector2.new(0.5, 0)
-    loadingText.Size = UDim2.new(0.8, 0, 0, 20)
+    loadingText.Position = UDim2.new(0.5, 0, 0.92, 0)
+    loadingText.AnchorPoint = Vector2.new(0.5, 0.5)
+    loadingText.Size = UDim2.new(0.85, 0, 0, 18)
     loadingText.BackgroundTransparency = 1
     loadingText.Font = Settings.Font
-    loadingText.Text = "Initializing..."
-    loadingText.TextSize = 16
+    loadingText.Text = "Loading..."
+    loadingText.TextSize = 14
     loadingText.TextColor3 = Color3.fromRGB(180, 180, 180)
     loadingText.Parent = container
     
-    -- Create background particles
-    for i = 1, 30 do
-        local particle = Instance.new("Frame")
-        particle.Name = "Particle" .. i
-        particle.Size = UDim2.new(0, math.random(2, 5), 0, math.random(2, 5))
-        particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
-        particle.BackgroundColor3 = (math.random() > 0.5) and Settings.PrimaryColor or Settings.SecondaryColor
-        particle.BackgroundTransparency = math.random(0.7, 0.9)
-        particle.BorderSizePixel = 0
-        particle.ZIndex = 0
-        particle.Parent = background
-        
-        -- Add rounded corners to particles
-        local particleCorner = Instance.new("UICorner")
-        particleCorner.CornerRadius = UDim.new(1, 0)
-        particleCorner.Parent = particle
-        
-        -- Animate particles
+    -- Animate loading dots if enabled
+    if Settings.UseLoadingDots then
         spawn(function()
-            while ScreenGui and ScreenGui.Parent do
-                -- Random movement
-                local randomX = math.random(-50, 50) / 1000
-                local randomY = math.random(-50, 50) / 1000
-                local randomDuration = math.random(2, 5)
-                
-                local particleTween = TweenService:Create(
-                    particle,
-                    TweenInfo.new(randomDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                    {Position = UDim2.new(math.clamp(particle.Position.X.Scale + randomX, 0, 1), 0, 
-                                         math.clamp(particle.Position.Y.Scale + randomY, 0, 1), 0)}
-                )
-                particleTween:Play()
-                wait(randomDuration - 0.1)
+            local dots = {"", ".", "..", "..."}
+            local dotIndex = 1
+            while ScreenGui and ScreenGui.Parent and loadingText.Text:find("Loading") do
+                loadingText.Text = "Loading" .. dots[dotIndex]
+                dotIndex = (dotIndex % #dots) + 1
+                wait(0.3)
             end
         end)
     end
     
-    -- Initialize background music
-    if Settings.Sounds.Enabled and Settings.Sounds.Background then
-        LoadingMusic = Instance.new("Sound")
-        LoadingMusic.SoundId = Settings.Sounds.Background
-        LoadingMusic.Volume = 0.5
-        LoadingMusic.Looped = true
-        LoadingMusic.Parent = ScreenGui
-        LoadingMusic:Play()
-    end
+    -- Initial entrance animation
+    container.Position = UDim2.new(0.5, 0, 0.45, 0)
+    container.Size = UDim2.new(0, 0, 0, 0)
+    container.BackgroundTransparency = 1
+    background.BackgroundTransparency = 1
+    
+    -- Animate entrance
+    local bgTween = TweenService:Create(background, TweenInfo.Medium, {
+        BackgroundTransparency = 0.7
+    })
+    
+    local containerTween = TweenService:Create(container, TweenInfo.Medium, {
+        Size = UDim2.new(0, 280, 0, 140),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundTransparency = 0
+    })
+    
+    bgTween:Play()
+    containerTween:Play()
     
     -- Store UI components
     self.UI = {
         ScreenGui = ScreenGui,
         Container = container,
+        Background = background,
         LoadingBar = loadingBar,
-        LoadingText = loadingText,
-        Subtitle = subtitle
+        LoadingText = loadingText
     }
-    
-    -- Initial animation
-    container.Size = UDim2.new(0, 0, 0, 0)
-    container.BackgroundTransparency = 1
-    
-    local containerTween = TweenService:Create(container, TweenSettings.Medium, {
-        Size = UDim2.new(0, 500, 0, 300),
-        BackgroundTransparency = 0.1
-    })
-    containerTween:Play()
     
     return self
 end
 
--- Start the loading process
-function LoadingScreen:Start()
+-- Start the loading process with auto progress
+function CompactLoader:Start(duration)
     if not self.UI then
         self:Create()
     end
     
-    IsLoading = true
-    CurrentStep = 0
+    duration = duration or 3 -- Default loading time in seconds
     
     -- Reset loading bar
     self.UI.LoadingBar.Size = UDim2.new(0, 0, 1, 0)
     
-    -- Process loading steps
+    -- Animate loading bar
+    local barTween = TweenService:Create(self.UI.LoadingBar, 
+        TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+        {Size = UDim2.new(1, 0, 1, 0)}
+    )
+    barTween:Play()
+    
+    -- Auto complete
     spawn(function()
-        for i, step in ipairs(Settings.LoadingSteps) do
-            CurrentStep = i
-            local progress = i / #Settings.LoadingSteps
-            self.UI.LoadingText.Text = step
-            
-            -- Update loading bar
-            local barTween = TweenService:Create(self.UI.LoadingBar, 
-                TweenInfo.new(Settings.LoadingBarSpeed, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-                {Size = UDim2.new(progress, 0, 1, 0)}
-            )
-            barTween:Play()
-            
-            -- Wait between steps (simulates loading)
-            wait(Settings.LoadingBarSpeed * 2)
-        end
-        
-        -- Complete loading
+        wait(duration)
         self:Complete()
     end)
     
     return self
 end
 
--- Complete the loading process
-function LoadingScreen:Complete()
-    if not self.UI then return end
+-- Manually set progress
+function CompactLoader:SetProgress(progress, text)
+    if not self.UI then return self end
     
-    IsLoading = false
+    progress = math.clamp(progress, 0, 1)
     
     -- Update UI
-    self.UI.LoadingText.Text = "Loading complete!"
-    self.UI.Subtitle.Text = "Ready to launch"
+    local barTween = TweenService:Create(self.UI.LoadingBar, TweenInfo.Fast, {
+        Size = UDim2.new(progress, 0, 1, 0)
+    })
+    barTween:Play()
     
-    -- Final loading bar animation
-    local barTween = TweenService:Create(self.UI.LoadingBar, TweenSettings.Fast, {
+    if text then
+        self.UI.LoadingText.Text = text
+    end
+    
+    return self
+end
+
+-- Complete loading
+function CompactLoader:Complete()
+    if not self.UI then return self end
+    
+    -- Update UI
+    self.UI.LoadingText.Text = "Complete!"
+    local barTween = TweenService:Create(self.UI.LoadingBar, TweenInfo.Fast, {
         Size = UDim2.new(1, 0, 1, 0)
     })
     barTween:Play()
@@ -455,52 +380,34 @@ function LoadingScreen:Complete()
     
     -- Auto close if enabled
     if Settings.AutoClose then
-        wait(1.5)
+        wait(1.2)
         self:Close()
     end
     
     return self
 end
 
--- Manually update loading progress
-function LoadingScreen:SetProgress(progress, text)
+-- Close the loader
+function CompactLoader:Close()
     if not self.UI then return self end
     
-    progress = math.clamp(progress, 0, 1)
-    
-    -- Update UI
-    local barTween = TweenService:Create(self.UI.LoadingBar, TweenSettings.Fast, {
-        Size = UDim2.new(progress, 0, 1, 0)
-    })
-    barTween:Play()
-    
-    if text then
-        self.UI.LoadingText.Text = text
-    end
-    
-    return self
-end
-
--- Close the loading screen
-function LoadingScreen:Close()
-    if not self.UI then return end
-    
-    -- Stop music
-    if LoadingMusic then
-        LoadingMusic:Stop()
-        LoadingMusic:Destroy()
-        LoadingMusic = nil
-    end
-    
-    -- Close animation
-    local containerTween = TweenService:Create(self.UI.Container, TweenSettings.Medium, {
-        Size = UDim2.new(0, 0, 0, 0),
+    -- Exit animation
+    local bgTween = TweenService:Create(self.UI.Background, TweenInfo.Medium, {
         BackgroundTransparency = 1
     })
+    
+    local containerTween = TweenService:Create(self.UI.Container, TweenInfo.Medium, {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.45, 0),
+        BackgroundTransparency = 1
+    })
+    
+    bgTween:Play()
     containerTween:Play()
     
-    -- Remove after animation
-    containerTween.Completed:Connect(function()
+    -- Clean up
+    spawn(function()
+        wait(0.5)
         if self.UI.ScreenGui then
             self.UI.ScreenGui:Destroy()
             self.UI = nil
@@ -512,20 +419,23 @@ end
 
 -- Example usage:
 --[[
--- Load the UI
-local loader = LoadingScreen:Create()
+-- Create and show the loader
+local loader = CompactLoader:Create()
 
--- Start the loading process
+-- Start with auto progress (takes 3 seconds by default)
 loader:Start()
 
--- You can also manually control the progress:
--- loader:SetProgress(0.5, "Loading assets...")
-
--- When loading is complete:
+-- OR manually control progress:
+-- loader:Start() -- Initialize first
+-- wait(0.5)
+-- loader:SetProgress(0.3, "Loading assets...")
+-- wait(0.5)
+-- loader:SetProgress(0.7, "Finalizing...")
+-- wait(0.5)
 -- loader:Complete()
 
 -- To manually close:
 -- loader:Close()
 ]]
 
-return LoadingScreen
+return CompactLoader
