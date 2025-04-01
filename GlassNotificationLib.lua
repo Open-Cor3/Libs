@@ -17,23 +17,30 @@
   -- Display an error notification
   GlassNotify:Error("Error", "Failed to save file", 10)
   
-  -- Display a notification with custom options
-  GlassNotify:Custom({
-    title = "Custom Notification",
-    message = "This is a custom notification with options",
-    duration = 7,
-    position = "TopRight",
-    actions = {
-      {
-        text = "OK",
-        callback = function() print("OK clicked") end
-      },
-      {
-        text = "Cancel",
-        callback = function() print("Cancel clicked") end
-      }
+  -- Send custom Notification
+GlassNotify:Custom({ -- Get Func
+    title = "Custom Example", -- Title
+    message = "Would you like .....", -- Description
+    type = "info", -- error / info / warning / success
+    duration = 0, -- 0 means it won't auto-close / in seconds
+    position = "Top", -- Top / Bottom
+    actions = { -- Buttons
+        {
+            text = "Save",
+            callback = function() print("vng...") end
+        },
+        {
+            text = "nil",
+            callback = function() print("ng...") end
+        },
+                {
+            text = "steff",
+            callback = function()
+                print("g...") 
+            end
+        },
     }
-  })
+})
 ]]
 
 local GlassNotify = {}
@@ -110,23 +117,20 @@ function GlassNotify:CreateNotificationFrame(options)
 	-- Create the main frame
 	local frame = Instance.new("Frame")
 	frame.Name = "Notification_" .. tostring(#self.ActiveNotifications + 1)
-	frame.Size = UDim2.new(0, 0, 0, 0) -- Start with zero size for animation
+	frame.Size = UDim2.new(0, 0, 0, 0)
 	frame.BackgroundColor3 = self.Settings.Colors.Background
 	frame.BackgroundTransparency = self.Settings.Colors.BackgroundTransparency
 	frame.BorderSizePixel = 0
 	frame.ZIndex = self.Settings.ZIndex
 	frame.Parent = self.Container
 	
-	-- Apply corner radius
 	local cornerRadius = Instance.new("UICorner")
 	cornerRadius.CornerRadius = self.Settings.CornerRadius
 	cornerRadius.Parent = frame
 	
-	-- Create blur effect
 	local blurEffect = Instance.new("BlurEffect")
 	blurEffect.Size = self.Settings.BlurSize
 	
-	-- Create the background blur frame
 	local blurFrame = Instance.new("Frame")
 	blurFrame.Name = "BlurFrame"
 	blurFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -140,7 +144,6 @@ function GlassNotify:CreateNotificationFrame(options)
 	blurCorner.CornerRadius = self.Settings.CornerRadius
 	blurCorner.Parent = blurFrame
 	
-	-- Color indicator based on notification type
 	local colorIndicator = Instance.new("Frame")
 	colorIndicator.Name = "ColorIndicator"
 	colorIndicator.Size = UDim2.new(0, 4, 1, 0)
@@ -163,12 +166,10 @@ function GlassNotify:CreateNotificationFrame(options)
 	
 	colorIndicator.Parent = frame
 	
-	-- Create a corner radius for the color indicator
 	local indicatorCorner = Instance.new("UICorner")
 	indicatorCorner.CornerRadius = UDim.new(0, 2)
 	indicatorCorner.Parent = colorIndicator
 	
-	-- Create the title
 	local titleLabel = Instance.new("TextLabel")
 	titleLabel.Name = "Title"
 	titleLabel.Size = UDim2.new(1, -50, 0, 26)
@@ -182,7 +183,6 @@ function GlassNotify:CreateNotificationFrame(options)
 	titleLabel.ZIndex = frame.ZIndex + 1
 	titleLabel.Parent = frame
 	
-	-- Create the message
 	local messageLabel = Instance.new("TextLabel")
 	messageLabel.Name = "Message"
 	messageLabel.Size = UDim2.new(1, -30, 0, 0)
@@ -197,7 +197,6 @@ function GlassNotify:CreateNotificationFrame(options)
 	messageLabel.Text = message
 	messageLabel.ZIndex = frame.ZIndex + 1
 	
-	-- Calculate text height
 	local textSize = game:GetService("TextService"):GetTextSize(
 		message,
 		self.Settings.TextSize,
@@ -221,7 +220,6 @@ function GlassNotify:CreateNotificationFrame(options)
 	closeButton.ZIndex = frame.ZIndex + 2
 	closeButton.Parent = frame
 	
-	-- Calculate total height based on content
 	local totalHeight = 50 + textSize.Y
 	
 	-- Add action buttons if provided
@@ -250,7 +248,6 @@ function GlassNotify:CreateNotificationFrame(options)
 			actionButton.ZIndex = frame.ZIndex + 2
 			actionButton.Parent = buttonsContainer
 			
-			-- Add rounded corners to button
 			local buttonCorner = Instance.new("UICorner")
 			buttonCorner.CornerRadius = UDim.new(0, 6)
 			buttonCorner.Parent = actionButton
@@ -273,10 +270,8 @@ function GlassNotify:CreateNotificationFrame(options)
 		totalHeight = totalHeight + 10
 	end
 	
-	-- Set the final size
 	frame.Size = UDim2.new(0, 0, 0, totalHeight)
 	
-	-- Create progress bar for duration
 	local progressBar = Instance.new("Frame")
 	progressBar.Name = "ProgressBar"
 	progressBar.Size = UDim2.new(1, 0, 0, 3)
@@ -292,7 +287,6 @@ function GlassNotify:CreateNotificationFrame(options)
 		self:RemoveNotification(frame)
 	end)
 	
-	-- Return the frame and calculated height
 	return {
 		Frame = frame,
 		Height = totalHeight,
@@ -312,19 +306,16 @@ function GlassNotify:PositionNotifications()
 		["Bottom"] = {}
 	}
 	
-	-- Group notifications by position
 	for _, notif in ipairs(self.ActiveNotifications) do
 		if notif.Frame and notif.Frame.Parent then
 			table.insert(positions[notif.Position], notif)
 		end
 	end
 	
-	-- Position each group
 	for position, notifications in pairs(positions) do
 		local yOffset = self.Settings.Padding
 		
 		if position == "BottomRight" or position == "BottomLeft" or position == "Bottom" then
-			-- Start from bottom and go up
 			yOffset = -self.Settings.Padding
 			
 			for i = #notifications, 1, -1 do
@@ -342,7 +333,6 @@ function GlassNotify:PositionNotifications()
 				yOffset = targetY - self.Settings.Padding
 			end
 		else
-			-- Start from top and go down
 			for _, notif in ipairs(notifications) do
 				if position == "TopRight" then
 					notif.Frame.Position = UDim2.new(1, -self.Settings.Padding - self.Settings.Width.X.Offset, 0, yOffset)
@@ -358,14 +348,11 @@ function GlassNotify:PositionNotifications()
 	end
 end
 
--- Show notification with animation
 function GlassNotify:ShowNotification(options)
 	self:Initialize()
 	
-	-- Create notification frame
 	local notification = self:CreateNotificationFrame(options)
 	
-	-- Add to active notifications
 	table.insert(self.ActiveNotifications, notification)
 	
 	-- Limit number of notifications
@@ -404,7 +391,6 @@ function GlassNotify:ShowNotification(options)
 	return notification.Frame
 end
 
--- Remove notification with animation
 function GlassNotify:RemoveNotification(frame)
 	-- Find notification in active list
 	local index = nil
@@ -417,7 +403,6 @@ function GlassNotify:RemoveNotification(frame)
 	
 	if not index then return end
 	
-	-- Remove from active list
 	local notification = self.ActiveNotifications[index]
 	table.remove(self.ActiveNotifications, index)
 	
@@ -442,7 +427,6 @@ function GlassNotify:RemoveNotification(frame)
 	end)
 end
 
--- Helper methods for different notification types
 function GlassNotify:Toast(title, message, duration)
 	return self:ShowNotification({
 		title = title,
